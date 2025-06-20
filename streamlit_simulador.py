@@ -145,7 +145,15 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
 
     except Exception as e:
         st.error(f"Erro ao processar o arquivo: {e}")
+        
+with col_esq:
 
+        st.markdown("---")
+        st.subheader("📊 Resultados da Simulação")
+        st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
+        st.write(f"📦 **Total de caixas simuladas:** {caixas}")
+        st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
+    
 # Exibição do último resultado e relatórios no lado direito
 with col_dir:
     if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
@@ -157,13 +165,7 @@ with col_dir:
         tempo_caixas = sim["tempo_caixas"]
         df_sim = sim.get("df_simulacao", pd.DataFrame())
         
-    with col_esq:
 
-        st.markdown("---")
-        st.subheader("📊 Resultados da Simulação")
-        st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
-        st.write(f"📦 **Total de caixas simuladas:** {caixas}")
-        st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
 
         # Relatório detalhado por caixa com tempo
         if tempo_caixas:
