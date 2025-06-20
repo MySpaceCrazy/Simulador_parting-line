@@ -174,41 +174,99 @@ if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
     else:
         st.success("🚀 Nenhuma estação sobrecarregada detectada.")
 
-# Comparativo
-if comparar_simulacoes and len(st.session_state.simulacoes_salvas) > 1:
+# Comparação com simulações anteriores ou arquivo externo
+if comparar_simulacoes:
     st.markdown("---")
     st.subheader("🔁 Comparativo entre Simulações")
 
-    ids = st.session_state.ordem_simulacoes[-2:]
-    id1, id2 = ids[0], ids[1]
-    sim1 = st.session_state.simulacoes_salvas[id1]
-    sim2 = st.session_state.simulacoes_salvas[id2]
+    ids = st.session_state.ordem_simulacoes[-2:]  # Pega as últimas 2 simulações salvas
+    if len(ids) < 2 and uploaded_comp is None:
+        st.info("Nenhuma comparação possível: faça pelo menos duas simulações ou envie um arquivo para comparação.")
+    else:
+        # Caso exista arquivo externo para comparação
+        if uploaded_comp is not None:
+            try:
+                df_comp_ext = pd.read_excel(uploaded_comp)
+                df_comp_ext = df_comp_ext.sort_values(by=["ID_Pacote", "ID_Caixas"])
+                caixas_ext = df_comp_ext["ID_Caixas"].unique()
+                tempo_estacao_ext = defaultdict(float)
 
-    tempo1 = sim1["tempo_total"]
-    tempo2 = sim2["tempo_total"]
+                for caixa in caixas_ext:
+                    caixa_df = df_comp_ext[df_comp_ext["ID_Caixas"] == caixa]
+                    for _, linha in caixa_df.iterrows():
+                        estacao = linha["Estação"]
+                        contagem = linha["Contagem de Produto"]
+                        tempo = (contagem * tempo_produto) / pessoas_por_estacao + tempo_deslocamento
+                        tempo_estacao_ext[estacao] += tempo
 
-    delta_tempo = tempo2 - tempo1
-    abs_pct = abs(delta_tempo / tempo1 * 100) if tempo1 else 0
-    direcao = "melhorou" if delta_tempo < 0 else "aumentou"
+                df2 = pd.DataFrame([
+                    {"Estação": est, "Tempo (s)": tempo, "Simulação": "Arquivo Comparado"}
+                    for est, tempo in tempo_estacao_ext.items()
+                ])
+                sim2_label = "Arquivo Comparado"
+                tempo2 = df2["Tempo (s)"].max()  # Tempo máximo
+                caixas2 = len(caixas_ext)
 
-    caixas1 = sim1["total_caixas"]
-    caixas2 = sim2["total_caixas"]
-    caixas_diferenca = caixas2 - caixas1
-    caixas_pct = (caixas_diferenca / caixas1 * 100) if caixas1 else 0
+                # Para comparação, usa a última simulação salva como base
+                id1 = ids[-1] if ids else None
+                sim1 = st.session_state.simulacoes_salvas[id1] if id1 else None
 
-    tempo_formatado = formatar_tempo(abs(delta_tempo))
-    st.metric("Delta de Tempo Total", f"{tempo_formatado}", f"{delta_tempo:+.0f}s ({abs_pct:.1f}% {direcao})")
-    st.write(f"📦 **Caixas Base:** {caixas1} | **Comparada:** {caixas2} | Δ {caixas_diferenca:+} caixas ({caixas_pct:+.1f}%)")
+            except Exception as e:
+                st.error(f"Erro ao processar arquivo de comparação: {e}")
+                df2 = pd.DataFrame()
+                tempo2 = 0
+                caixas2 = 0
+                sim2_label = "Erro"
+                sim1 = None
+        else:
+            # Comparação entre últimas duas simulações salvas
+            id1, id2 = ids[-2], ids[-1]
+            sim1 = st.session_state.simulacoes_salvas[id1]
+            sim2 = st.session_state.simulacoes_salvas[id2]
+            tempo1 = sim1["tempo_total"]
+            tempo2 = sim2["tempo_total"]
+            caixas1 = sim1["total_caixas"]
+            caixas2 = sim2["total_caixas"]
+            sim2_label = id2
 
-    df_comp = pd.DataFrame([
-        {"Estação": est, "Tempo (s)": tempo, "Simulação": id1} for est, tempo in sim1["tempo_por_estacao"].items()
-    ] + [
-        {"Estação": est, "Tempo (s)": tempo, "Simulação": id2} for est, tempo in sim2["tempo_por_estacao"].items()
-    ])
+            df1 = pd.DataFrame([
+                {"Estação": est, "Tempo (s)": tempo, "Simulação": id1}
+                for est, tempo in sim1["tempo_por_estacao"].items()
+            ])
+            df2 = pd.DataFrame([
+                {"Estação": est, "Tempo (s)": tempo, "Simulação": id2}
+                for est, tempo in sim2["tempo_por_estacao"].items()
+            ])
 
-    st.markdown("### 📊 Comparativo de Tempo por Estação")
-    fig_comp = px.bar(df_comp, x="Estação", y="Tempo (s)", color="Simulação", barmode="group")
-    st.plotly_chart(fig_comp, use_container_width=True)
+        # Se sim1 existir e df2 existir (caso arquivo externo)
+        if sim1 is not None and not df2.empty:
+            if 'tempo1' not in locals():
+                tempo1 = sim1["tempo_total"]
+            if 'caixas1' not in locals():
+                caixas1 = sim1["total_caixas"]
 
-elif uploaded_comp is not None:
-    st.warning("⚠️ Para comparar corretamente, primeiro clique em '▶️ Iniciar Simulação' com o novo arquivo carregado.")
+            df1 = pd.DataFrame([
+                {"Estação": est, "Tempo (s)": tempo, "Simulação": sim1["id"]}
+                for est, tempo in sim1["tempo_por_estacao"].items()
+            ])
+
+            df_comp = pd.concat([df1, df2], ignore_index=True)
+
+            st.markdown("### 📊 Comparativo de Tempo por Estação")
+            fig_comp = px.bar(df_comp, x="Estação", y="Tempo (s)", color="Simulação", barmode="group")
+            st.plotly_chart(fig_comp, use_container_width=True)
+
+            delta_tempo = tempo2 - tempo1
+            abs_pct = abs(delta_tempo / tempo1 * 100) if tempo1 else 0
+            direcao = "melhorou" if delta_tempo < 0 else "aumentou"
+
+            caixas_diferenca = caixas2 - caixas1
+            caixas_pct = (caixas_diferenca / caixas1 * 100) if caixas1 else 0
+
+            tempo_formatado = formatar_tempo(abs(delta_tempo))
+            st.metric("Delta de Tempo Total", f"{tempo_formatado}", f"{delta_tempo:+.0f}s ({abs_pct:.1f}% {direcao})")
+            st.write(f"📦 **Caixas Base:** {caixas1} | **Comparada:** {caixas2} | Δ {caixas_diferenca:+} caixas ({caixas_pct:+.1f}%)")
+
+        else:
+            st.info("Não há dados suficientes para comparação.")
+
