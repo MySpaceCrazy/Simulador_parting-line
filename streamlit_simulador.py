@@ -9,7 +9,7 @@ from pathlib import Path
 import pytz
 
 st.set_page_config(page_title="Simulador de Separação", layout="wide")
-st.title("🔪 Simulador de Separação de Produtos")
+st.title("🧪 Simulador de Separação de Produtos")
 
 # Layout colunas principais
 col_esq, col_dir = st.columns([2, 2])
@@ -64,7 +64,10 @@ uploaded_comp = st.file_uploader("📁 Arquivo para Comparação", type=["xlsx"]
 with col_esq:
     ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True)
     comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True)
-
+    st.subheader("📊 Resultados da Simulação")
+    st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
+    st.write(f"📦 **Total de caixas simuladas:** {caixas}")
+    st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
 # Início da simulação
 if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
     try:
