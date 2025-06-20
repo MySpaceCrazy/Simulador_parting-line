@@ -189,6 +189,7 @@ with col_dir:
             st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
 
         # Sugestão layout otimizado (já no relatório principal)
+    if 'df_comp' in locals() and not df_comp.empty:
         st.markdown("---")
         st.subheader("🧠 Sugestão de Layout Otimizado")
         df_estacoes = pd.DataFrame([
