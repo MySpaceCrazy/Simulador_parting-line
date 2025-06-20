@@ -64,10 +64,7 @@ uploaded_comp = st.file_uploader("📁 Arquivo para Comparação", type=["xlsx"]
 with col_esq:
     ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True)
     comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True)
-    st.subheader("📊 Resultados da Simulação")
-    st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
-    st.write(f"📦 **Total de caixas simuladas:** {caixas}")
-    st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
+
 # Início da simulação
 if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
     try:
@@ -159,6 +156,8 @@ with col_dir:
         caixas = sim["total_caixas"]
         tempo_caixas = sim["tempo_caixas"]
         df_sim = sim.get("df_simulacao", pd.DataFrame())
+        
+    with col_esq:
 
         st.markdown("---")
         st.subheader("📊 Resultados da Simulação")
