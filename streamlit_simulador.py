@@ -9,7 +9,7 @@ from pathlib import Path
 import pytz
 
 st.set_page_config(page_title="Simulador de Separação", layout="wide")
-st.title("🧪 Simulador de Separação de Produtos")
+st.title("🔪 Simulador de Separação de Produtos")
 
 # Layout colunas principais
 col_esq, col_dir = st.columns([2, 2])
@@ -145,16 +145,7 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
 
     except Exception as e:
         st.error(f"Erro ao processar o arquivo: {e}")
-        
-with col_esq:
 
-        
-        st.subheader("📊 Resultados da Simulação")
-        st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
-        st.write(f"📦 **Total de caixas simuladas:** {caixas}")
-        st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
-        st.markdown("---")
-    
 # Exibição do último resultado e relatórios no lado direito
 with col_dir:
     if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
@@ -165,8 +156,12 @@ with col_dir:
         caixas = sim["total_caixas"]
         tempo_caixas = sim["tempo_caixas"]
         df_sim = sim.get("df_simulacao", pd.DataFrame())
-        
 
+        st.markdown("---")
+        st.subheader("📊 Resultados da Simulação")
+        st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
+        st.write(f"📦 **Total de caixas simuladas:** {caixas}")
+        st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
 
         # Relatório detalhado por caixa com tempo
         if tempo_caixas:
