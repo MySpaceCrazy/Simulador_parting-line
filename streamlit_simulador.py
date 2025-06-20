@@ -148,11 +148,12 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
         
 with col_esq:
 
-        st.markdown("---")
+        
         st.subheader("📊 Resultados da Simulação")
         st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
         st.write(f"📦 **Total de caixas simuladas:** {caixas}")
         st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
+        st.markdown("---")
     
 # Exibição do último resultado e relatórios no lado direito
 with col_dir:
