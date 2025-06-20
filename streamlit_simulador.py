@@ -11,7 +11,7 @@ import pytz
 st.set_page_config(page_title="Simulador de Separação", layout="wide")
 st.title("🔪 Simulador de Separação de Produtos")
 
-# Colunas principais
+# Layout colunas principais
 col_esq, col_dir = st.columns([2, 2])
 
 # Entrada de parâmetros (lado esquerdo)
@@ -30,7 +30,7 @@ if novo_arquivo is not None:
 # Usa o arquivo do estado, se disponível
 uploaded_file = st.session_state.get("arquivo_atual", None)
 
-# Função auxiliar para formatar tempo
+# Função para formatar tempo
 def formatar_tempo(segundos):
     if segundos < 60:
         return f"{int(round(segundos))} segundos"
@@ -60,7 +60,7 @@ st.markdown("---")
 st.subheader("📁 Comparação com Outro Arquivo Excel (Opcional)")
 uploaded_comp = st.file_uploader("📁 Arquivo para Comparação", type=["xlsx"], key="upload_comparacao")
 
-# Botão de simulação
+# Botão de simulação e opções
 with col_esq:
     ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True)
     comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True)
@@ -117,6 +117,7 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
             tempo_caixas[caixa] = fim_caixa - tempo_inicio_caixa
             tempo_total_simulacao = max(tempo_total_simulacao, fim_caixa)
 
+        # Guarda dados na sessão
         fuso_brasil = pytz.timezone("America/Sao_Paulo")
         data_hora = datetime.now(fuso_brasil).strftime("%Y-%m-%d_%Hh%Mmin")
         nome_base = Path(uploaded_file.name).stem
@@ -128,7 +129,8 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
             "gargalo": tempo_gargalo,
             "total_caixas": len(caixas),
             "tempo_caixas": tempo_caixas,
-            "id": id_simulacao
+            "id": id_simulacao,
+            "df_simulacao": df  # salva o dataframe para relatórios
         }
 
         st.session_state.simulacoes_salvas[id_simulacao] = st.session_state.ultima_simulacao
@@ -144,46 +146,74 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
     except Exception as e:
         st.error(f"Erro ao processar o arquivo: {e}")
 
-# Exibição do último resultado
-if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
-    sim = st.session_state.ultima_simulacao
-    tempo_total = sim["tempo_total"]
-    gargalo = sim["gargalo"]
-    tempo_por_estacao = sim["tempo_por_estacao"]
-    caixas = sim["total_caixas"]
+# Exibição do último resultado e relatórios no lado direito
+with col_dir:
+    if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
+        sim = st.session_state.ultima_simulacao
+        tempo_total = sim["tempo_total"]
+        gargalo = sim["gargalo"]
+        tempo_por_estacao = sim["tempo_por_estacao"]
+        caixas = sim["total_caixas"]
+        tempo_caixas = sim["tempo_caixas"]
+        df_sim = sim.get("df_simulacao", pd.DataFrame())
 
-    st.markdown("---")
-    st.subheader("📊 Resultados da Simulação")
-    st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
-    st.write(f"📦 **Total de caixas simuladas:** {caixas}")
-    st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
+        st.markdown("---")
+        st.subheader("📊 Resultados da Simulação")
+        st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
+        st.write(f"📦 **Total de caixas simuladas:** {caixas}")
+        st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
 
-    df_estacoes = pd.DataFrame([
-        {"Estação": est, "Tempo Total (s)": tempo} for est, tempo in tempo_por_estacao.items()
-    ])
+        # Relatório detalhado por caixa com tempo
+        if tempo_caixas:
+            df_relatorio_caixas = pd.DataFrame([
+                {"Caixa": cx, "Tempo total da caixa (s)": t, "Tempo formatado": formatar_tempo(t)}
+                for cx, t in tempo_caixas.items()
+            ])
+            df_relatorio_caixas = df_relatorio_caixas.sort_values(by="Tempo total da caixa (s)", ascending=False)
+            st.markdown("### 🗂️ Relatório detalhado por Caixa")
+            st.dataframe(df_relatorio_caixas)
 
-    st.markdown("---")
-    st.subheader("🧠 Sugestão de Layout Otimizado")
-    tempo_medio = df_estacoes["Tempo Total (s)"].mean()
-    limiar = 1.5 * tempo_medio
-    estacoes_sobrec = df_estacoes[df_estacoes["Tempo Total (s)"] > limiar]
+        # Relatório resumido por loja (somando tempos das caixas de cada loja)
+        if not df_sim.empty and "ID_Loja" in df_sim.columns:
+            # cria df caixa->loja
+            df_caixas_loja = df_sim[["ID_Caixas", "ID_Loja"]].drop_duplicates()
+            # junta tempo por caixa
+            df_caixas_loja["Tempo_caixa"] = df_caixas_loja["ID_Caixas"].map(tempo_caixas)
+            # agrupa por loja
+            df_relatorio_loja = df_caixas_loja.groupby("ID_Loja").agg(
+                Total_Caixas=("ID_Caixas", "count"),
+                Tempo_Total_Segundos=("Tempo_caixa", "sum")
+            ).reset_index()
+            df_relatorio_loja["Tempo Formatado"] = df_relatorio_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
+            st.markdown("### 🏬 Relatório resumido por Loja")
+            st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
 
-    if not estacoes_sobrec.empty:
-        st.warning("⚠️ Estações sobrecarregadas detectadas! Sugere-se redistribuir produtos para:")
-        st.dataframe(estacoes_sobrec.assign(Sugestao="Redistribuir para estações abaixo da média."))
-    else:
-        st.success("🚀 Nenhuma estação sobrecarregada detectada.")
+        # Sugestão layout otimizado (já no relatório principal)
+        st.markdown("---")
+        st.subheader("🧠 Sugestão de Layout Otimizado")
+        df_estacoes = pd.DataFrame([
+            {"Estação": est, "Tempo Total (s)": tempo} for est, tempo in tempo_por_estacao.items()
+        ])
+        tempo_medio = df_estacoes["Tempo Total (s)"].mean()
+        limiar = 1.5 * tempo_medio
+        estacoes_sobrec = df_estacoes[df_estacoes["Tempo Total (s)"] > limiar]
+
+        if not estacoes_sobrec.empty:
+            st.warning("⚠️ Estações sobrecarregadas detectadas! Sugere-se redistribuir produtos para:")
+            st.dataframe(estacoes_sobrec.assign(Sugestao="Redistribuir para estações abaixo da média."))
+        else:
+            st.success("🚀 Nenhuma estação sobrecarregada detectada.")
 
 # Comparação com simulações anteriores ou arquivo externo
 if comparar_simulacoes:
     st.markdown("---")
     st.subheader("🔁 Comparativo entre Simulações")
 
-    ids = st.session_state.ordem_simulacoes[-2:]  # Pega as últimas 2 simulações salvas
+    ids = st.session_state.ordem_simulacoes[-2:]  # últimas 2 simulações
     if len(ids) < 2 and uploaded_comp is None:
         st.info("Nenhuma comparação possível: faça pelo menos duas simulações ou envie um arquivo para comparação.")
     else:
-        # Caso exista arquivo externo para comparação
+        # Comparação com arquivo externo
         if uploaded_comp is not None:
             try:
                 df_comp_ext = pd.read_excel(uploaded_comp)
@@ -204,10 +234,9 @@ if comparar_simulacoes:
                     for est, tempo in tempo_estacao_ext.items()
                 ])
                 sim2_label = "Arquivo Comparado"
-                tempo2 = df2["Tempo (s)"].max()  # Tempo máximo
+                tempo2 = df2["Tempo (s)"].max()
                 caixas2 = len(caixas_ext)
 
-                # Para comparação, usa a última simulação salva como base
                 id1 = ids[-1] if ids else None
                 sim1 = st.session_state.simulacoes_salvas[id1] if id1 else None
 
@@ -219,7 +248,7 @@ if comparar_simulacoes:
                 sim2_label = "Erro"
                 sim1 = None
         else:
-            # Comparação entre últimas duas simulações salvas
+            # Comparação entre últimas 2 simulações salvas
             id1, id2 = ids[-2], ids[-1]
             sim1 = st.session_state.simulacoes_salvas[id1]
             sim2 = st.session_state.simulacoes_salvas[id2]
@@ -238,7 +267,6 @@ if comparar_simulacoes:
                 for est, tempo in sim2["tempo_por_estacao"].items()
             ])
 
-        # Se sim1 existir e df2 existir (caso arquivo externo)
         if sim1 is not None and not df2.empty:
             if 'tempo1' not in locals():
                 tempo1 = sim1["tempo_total"]
@@ -267,6 +295,5 @@ if comparar_simulacoes:
             st.metric("Delta de Tempo Total", f"{tempo_formatado}", f"{delta_tempo:+.0f}s ({abs_pct:.1f}% {direcao})")
             st.write(f"📦 **Caixas Base:** {caixas1} | **Comparada:** {caixas2} | Δ {caixas_diferenca:+} caixas ({caixas_pct:+.1f}%)")
 
-        else:
-            st.info("Não há dados suficientes para comparação.")
-
+elif uploaded_comp is not None:
+    st.warning("⚠️ Para comparar corretamente, primeiro clique em '▶️ Iniciar Simulação' com o novo arquivo carregado.")
