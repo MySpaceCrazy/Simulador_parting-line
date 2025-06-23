@@ -234,18 +234,17 @@ with col_dir:
             df_relatorio_loja["Tempo Formatado"] = df_relatorio_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
             st.markdown("### 🏬 Relatório resumido por Loja")
             st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
+            
+        # Exibir os principais indicadores só se tempo_total existir
+   with col_esq: 
+        if tempo_total is not None:
+            st.markdown("---")
+            st.subheader("📊 Resultados da Simulação")
+            st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
+            st.write(f"📦 **Total de caixas simuladas:** {caixas}")
+            st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
     else:
         st.info("Nenhuma simulação realizada ainda.")
-        
-        # Exibir os principais indicadores só se tempo_total existir
-with col_dir:
-        st.markdown("---")
-        st.subheader("📊 Resultados da Simulação")
-        st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
-        st.write(f"📦 **Total de caixas simuladas:** {caixas}")
-        st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
-
-
 
 # --- Comparação com simulações anteriores ou arquivo externo ---
 st.markdown("---")
