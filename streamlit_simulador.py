@@ -216,7 +216,7 @@ if uploaded_file is not None and iniciar:
 # --- Exibição do último resultado e relatórios ---
 col_esq, col_dir = st.columns([2, 2])
 
-with col_esq:
+with col_dir:
     if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
         sim = st.session_state.ultima_simulacao
         tempo_total = sim.get("tempo_total", None)
@@ -237,7 +237,7 @@ with col_esq:
             st.dataframe(df_relatorio_caixas)
 
         # Relatório resumido por loja (somando tempos das caixas de cada loja)
- with col_dir:
+ 
         if not df_sim.empty and "ID_Loja" in df_sim.columns:
             df_caixas_loja = df_sim[["ID_Caixas", "ID_Loja"]].drop_duplicates()
             df_caixas_loja["Tempo_caixa"] = df_caixas_loja["ID_Caixas"].map(tempo_caixas)
