@@ -120,7 +120,10 @@ st.markdown("---")
 with col_esq:
     ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=True, key="ver_graficos")
     comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True, disabled=True, key="comparar_simulacoes")
-
+    st.subheader("📊 Resultados da Simulação")
+    st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
+    st.write(f"📦 **Total de caixas simuladas:** {caixas}")
+    st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
 # --- Início da Simulação ---
 if uploaded_file is not None and iniciar:
     try:
