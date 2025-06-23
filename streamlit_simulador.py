@@ -115,6 +115,7 @@ if "ordem_simulacoes" not in st.session_state:
     st.session_state.ordem_simulacoes = []
 
 # Upload Comparação externo
+st.markdown("---")
 
 with col_esq:
     ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=True, key="ver_graficos")
