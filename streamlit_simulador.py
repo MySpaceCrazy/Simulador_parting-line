@@ -189,13 +189,17 @@ if uploaded_file is not None and iniciar:
             "id": id_simulacao,
             "df_simulacao": df
         }
-        # ⚠️ Aqui o teste para duplicação:
-        duplicadas = df[["ID_Caixas", "ID_Loja"]].duplicated(keep=False)
-        df_duplicadas = df[duplicadas]
 
-        if not df_duplicadas.empty:
-            st.warning("⚠️ Atenção: Existem caixas associadas a mais de uma loja ou registros duplicados!")
-            st.dataframe(df_duplicadas)
+        # ⚠️ Validação correta: Caixa associada a mais de uma loja
+        df_lojas_por_caixa = df.groupby("ID_Caixas")["ID_Loja"].nunique().reset_index()
+        df_caixas_multiplas_lojas = df_lojas_por_caixa[df_lojas_por_caixa["ID_Loja"] > 1]
+        
+        if not df_caixas_multiplas_lojas.empty:
+            st.warning("⚠️ Atenção: Existem caixas associadas a mais de uma loja, verifique o arquivo!")
+            caixas_com_problema = df_caixas_multiplas_lojas["ID_Caixas"].tolist()
+            df_problema = df[df["ID_Caixas"].isin(caixas_com_problema)].sort_values(by=["ID_Caixas", "ID_Loja", "Estação"])
+            st.dataframe(df_problema)
+
             
         st.session_state.simulacoes_salvas[id_simulacao] = st.session_state.ultima_simulacao
         st.session_state.ordem_simulacoes.append(id_simulacao)
