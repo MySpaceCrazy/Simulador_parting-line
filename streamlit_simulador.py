@@ -116,8 +116,6 @@ if "ordem_simulacoes" not in st.session_state:
 
 # Upload Comparação externo
 st.markdown("---")
-st.subheader("📁 Comparação com Outro Arquivo Excel (Opcional)")
-uploaded_comp = st.file_uploader("📁 Arquivo para Comparação", type=["xlsx"], key="upload_comparacao")
 
 with col_esq:
     ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=True, key="ver_graficos")
@@ -250,12 +248,6 @@ with col_dir:
 
 # --- Comparação com simulações anteriores ou arquivo externo ---
 st.markdown("---")
-st.subheader("🔁 Comparativo entre Simulações")
-
-# Controle dos checkboxes de ver gráficos e comparar simulações
-with col_esq:
-    ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True)
-    comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True)
 
 if comparar_simulacoes:
     ids = st.session_state.ordem_simulacoes[-2:]  # últimas 2 simulações
