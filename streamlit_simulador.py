@@ -239,7 +239,6 @@ with col_dir:
         
         # Exibir os principais indicadores só se tempo_total existir
 with col_dir:
-    if tempo_total is not None:
         st.markdown("---")
         st.subheader("📊 Resultados da Simulação")
         st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
