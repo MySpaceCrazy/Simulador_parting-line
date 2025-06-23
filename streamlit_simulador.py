@@ -167,13 +167,6 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
                 df_relatorio_caixas = df_relatorio_caixas.sort_values(by="Tempo total da caixa (s)", ascending=False)
                 st.markdown("### 🗂️ Relatório detalhado por Caixa")
                 st.dataframe(df_relatorio_caixas)
-
-    with col_esq:        
-            st.markdown("---")
-            st.subheader("📊 Resultados da Simulação")
-            st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
-            st.write(f"📦 **Total de caixas simuladas:** {caixas}")
-            st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
         
             # Relatório resumido por loja (somando tempos das caixas de cada loja)
             if not df_sim.empty and "ID_Loja" in df_sim.columns:
@@ -189,6 +182,13 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
                 df_relatorio_loja["Tempo Formatado"] = df_relatorio_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
                 st.markdown("### 🏬 Relatório resumido por Loja")
                 st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
+                
+    with col_esq:        
+            st.markdown("---")
+            st.subheader("📊 Resultados da Simulação")
+            st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
+            st.write(f"📦 **Total de caixas simuladas:** {caixas}")
+            st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
 
         # Sugestão layout otimizado (já no relatório principal)
     if 'df_comp' in locals() and not df_comp.empty:
