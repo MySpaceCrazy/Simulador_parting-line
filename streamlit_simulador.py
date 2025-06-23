@@ -237,7 +237,7 @@ with col_dir:
             st.dataframe(df_relatorio_caixas)
 
         # Relatório resumido por loja (somando tempos das caixas de cada loja)
- with col_dir:
+ with col_esq:
     if not df_sim.empty and "ID_Loja" in df_sim.columns:
         df_caixas_loja = df_sim[["ID_Caixas", "ID_Loja"]].drop_duplicates()
         df_caixas_loja["Tempo_caixa"] = df_caixas_loja["ID_Caixas"].map(tempo_caixas)
