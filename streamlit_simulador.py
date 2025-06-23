@@ -10,6 +10,24 @@ import pytz
 
 st.set_page_config(page_title="Simulador de Separação de Produtos", layout="wide")
 
+# --- Função de formatação ---
+def formatar_tempo(segundos):
+    if segundos < 60:
+        return f"{int(round(segundos))} segundos"
+    dias = int(segundos // 86400)
+    segundos %= 86400
+    horas = int(segundos // 3600)
+    segundos %= 3600
+    minutos = int(segundos // 60)
+    segundos = int(round(segundos % 60))
+    partes = []
+    if dias > 0: partes.append(f"{dias} {'dia' if dias == 1 else 'dias'}")
+    if horas > 0: partes.append(f"{horas} {'hora' if horas == 1 else 'horas'}")
+    if minutos > 0: partes.append(f"{minutos} {'minuto' if minutos == 1 else 'minutos'}")
+    if segundos > 0: partes.append(f"{segundos} {'segundo' if segundos == 1 else 'segundos'}")
+    return " e ".join(partes)
+
+# --- Cabeçalho ---
 col_titulo, col_botao, col_download, col_vazio = st.columns([5, 2, 2, 1])
 
 with col_titulo:
@@ -20,10 +38,9 @@ with col_botao:
 
 with col_download:
     if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
+        sim = st.session_state.ultima_simulacao
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-            sim = st.session_state.ultima_simulacao
-
             parametros = {
                 "Tempo médio por produto (s)": st.session_state.get("tempo_produto", ""),
                 "Tempo entre estações (s)": st.session_state.get("tempo_deslocamento", ""),
@@ -71,7 +88,7 @@ with col_esq:
     tempo_produto = st.number_input("⏱️ Tempo médio por produto (s)", value=20.0, step=1.0, format="%.2f")
     tempo_deslocamento = st.number_input("🚚 Tempo entre estações (s)", value=5.0, step=1.0, format="%.2f")
     capacidade_estacao = st.number_input("📦 Capacidade máxima de caixas simultâneas por estação", value=10, min_value=1)
-    pessoas_por_estacao = st.number_input("👷‍♂️ Pessoas por estação", value=1.0, min_value=0.01, step=0.1, format="%.2f")
+    pessoas_por_estacao = st.number_input("👷‍♂️ Número de pessoas por estação", value=1.0, min_value=0.01, step=0.1, format="%.2f")
     tempo_adicional_caixa = st.number_input("➕ Tempo adicional por caixa (s)", value=0.0, step=1.0, format="%.2f")
     novo_arquivo = st.file_uploader("📂 Arquivo para Simulação", type=["xlsx"], key="upload_simulacao")
 
@@ -85,22 +102,6 @@ if novo_arquivo is not None:
     st.session_state.arquivo_atual = novo_arquivo
 
 uploaded_file = st.session_state.get("arquivo_atual", None)
-
-def formatar_tempo(segundos):
-    if segundos < 60:
-        return f"{int(round(segundos))} segundos"
-    dias = int(segundos // 86400)
-    segundos %= 86400
-    horas = int(segundos // 3600)
-    segundos %= 3600
-    minutos = int(segundos // 60)
-    segundos = int(round(segundos % 60))
-    partes = []
-    if dias > 0: partes.append(f"{dias} {'dia' if dias == 1 else 'dias'}")
-    if horas > 0: partes.append(f"{horas} {'hora' if horas == 1 else 'horas'}")
-    if minutos > 0: partes.append(f"{minutos} {'minuto' if minutos == 1 else 'minutos'}")
-    if segundos > 0: partes.append(f"{segundos} {'segundo' if segundos == 1 else 'segundos'}")
-    return " e ".join(partes)
 
 if "simulacoes_salvas" not in st.session_state:
     st.session_state.simulacoes_salvas = {}
