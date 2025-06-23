@@ -245,9 +245,10 @@ with col_esq:
                 Total_Caixas=("ID_Caixas", "count"),
                 Tempo_Total_Segundos=("Tempo_caixa", "sum")
             ).reset_index()
-            df_relatorio_loja["Tempo Formatado"] = df_relatorio_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
-            st.markdown("### 🏬 Relatório resumido por Loja")
-            st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
+            with col_dir:
+                df_relatorio_loja["Tempo Formatado"] = df_relatorio_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
+                st.markdown("### 🏬 Relatório resumido por Loja")
+                st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
 
 # --- Comparação com simulações anteriores ou arquivo externo ---
 st.markdown("---")
