@@ -247,20 +247,6 @@ with col_dir:
             st.markdown("### 🏬 Relatório resumido por Loja")
             st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
 
-with col_esq:
-    if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
-        tempo_total = st.session_state.ultima_simulacao.get("tempo_total", None)
-        gargalo = st.session_state.ultima_simulacao.get("gargalo", None)
-        caixas = st.session_state.ultima_simulacao.get("total_caixas", 0)
-
-        if tempo_total is not None:
-            st.subheader("📊 Resultados da Simulação")
-            st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
-            st.write(f"📦 **Total de caixas simuladas:** {caixas}")
-            st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
-    else:
-        st.info("Nenhuma simulação realizada ainda.")
-
 # --- Comparação com simulações anteriores ou arquivo externo ---
 st.markdown("---")
 
