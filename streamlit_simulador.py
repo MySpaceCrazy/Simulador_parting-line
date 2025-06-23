@@ -210,7 +210,6 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
 # Comparação com simulações anteriores ou arquivo externo
 if comparar_simulacoes:
     st.markdown("---")
-    #st.subheader("🔁 Comparativo entre Simulações")
 
     ids = st.session_state.ordem_simulacoes[-2:]  # últimas 2 simulações
     if len(ids) < 2 and uploaded_comp is None:
@@ -294,11 +293,6 @@ if comparar_simulacoes:
             caixas_diferenca = caixas2 - caixas1
             caixas_pct = (caixas_diferenca / caixas1 * 100) if caixas1 else 0
 
-           # tempo_formatado = formatar_tempo(abs(delta_tempo))
-           # st.metric("Delta de Tempo Total", f"{tempo_formatado}", f"{delta_tempo:+.0f}s ({abs_pct:.1f}% {direcao})")
-           # st.write(f"📦 **Caixas Base:** {caixas1} | **Comparada:** {caixas2} | Δ {caixas_diferenca:+} caixas ({caixas_pct:+.1f}%)")
-
-            
             tempo_formatado = formatar_tempo(abs(delta_tempo))
             # Força a lógica onde diminuir o tempo é positivo (verde), aumentar é negativo (vermelho)
             st.metric(
