@@ -7,20 +7,16 @@ import plotly.express as px
 from datetime import datetime
 from pathlib import Path
 import pytz
-import io
 
 st.set_page_config(page_title="Simulador de Separação de Produtos", layout="wide")
 
-col_titulo, col_botao, col_download, col_vazio = st.columns([5, 2, 2, 10])
+col_titulo, col_botao, col_vazio = st.columns([5, 2, 2])
 
 with col_titulo:
     st.title("🧪 Simulador de Separação de Produtos")
 
 with col_botao:
     iniciar = st.button("▶️ Iniciar Simulação", use_container_width=True)
-
-with col_download:
-    baixar = st.download_button("⬇️ Baixar Relatório", data=None, file_name="Relatorio_Simulacao.xlsx", disabled=True, use_container_width=True)
 
 # Layout colunas principais
 col_esq, col_dir = st.columns([2, 2])
@@ -319,82 +315,3 @@ if comparar_simulacoes:
 
 elif uploaded_comp is not None:
     st.warning("⚠️ Para comparar corretamente, primeiro clique em '▶️ Iniciar Simulação' com o novo arquivo carregado.")
-
-
-# Gera relatório somente se houver resultados
-if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
-
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-        
-        sim = st.session_state.ultima_simulacao
-        df_sim = sim.get("df_simulacao", pd.DataFrame())
-        tempo_total = sim["tempo_total"]
-        gargalo = sim["gargalo"]
-        total_caixas = sim["total_caixas"]
-        
-        # Primeira guia: Resumo
-        resumo = [
-            ["Parâmetros Utilizados", ""],
-            ["Tempo por produto (s)", tempo_produto],
-            ["Tempo entre estações (s)", tempo_deslocamento],
-            ["Capacidade máxima por estação", capacidade_estacao],
-            ["Pessoas por estação", pessoas_por_estacao],
-            ["Tempo adicional por caixa (s)", tempo_adicional_caixa],
-            ["", ""],
-            ["Resultados da Simulação", ""],
-            ["Tempo total para separar todas as caixas", formatar_tempo(tempo_total)],
-            ["Total de caixas simuladas", total_caixas],
-            ["Tempo até o primeiro gargalo", formatar_tempo(gargalo) if gargalo else "Nenhum gargalo"]
-        ]
-        
-        # Se tiver comparação gerada
-        if 'delta_tempo' in locals():
-            resumo.extend([
-                ["", ""],
-                ["Comparativo com Simulação Anterior ou Arquivo Externo", ""],
-                ["Delta de Tempo Total", formatar_tempo(abs(delta_tempo))],
-                ["Variação (s)", f"{delta_tempo:+.0f} s"],
-                ["Variação (%)", f"{abs_pct:.1f} % {direcao}"],
-                ["Caixas Base", caixas1],
-                ["Caixas Comparada", caixas2],
-                ["Δ Caixas", f"{caixas_diferenca:+} ({caixas_pct:+.1f}%)"]
-            ])
-        
-        df_resumo = pd.DataFrame(resumo, columns=["Descrição", "Valor"])
-        df_resumo.to_excel(writer, sheet_name="Resumo", index=False)
-
-        # Segunda guia: Relatório por Caixa
-        if "tempo_caixas" in sim and sim["tempo_caixas"]:
-            df_caixas = pd.DataFrame([
-                {"Caixa": cx, "Tempo total da caixa (s)": t, "Tempo formatado": formatar_tempo(t)}
-                for cx, t in sim["tempo_caixas"].items()
-            ])
-            df_caixas.to_excel(writer, sheet_name="Por Caixa", index=False)
-
-        # Terceira guia: Relatório por Loja
-        if not df_sim.empty and "ID_Loja" in df_sim.columns:
-            df_caixas_loja = df_sim[["ID_Caixas", "ID_Loja"]].drop_duplicates()
-            df_caixas_loja["Tempo_caixa"] = df_caixas_loja["ID_Caixas"].map(sim["tempo_caixas"])
-            df_loja = df_caixas_loja.groupby("ID_Loja").agg(
-                Total_Caixas=("ID_Caixas", "count"),
-                Tempo_Total_Segundos=("Tempo_caixa", "sum")
-            ).reset_index()
-            df_loja["Tempo formatado"] = df_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
-            df_loja.to_excel(writer, sheet_name="Por Loja", index=False)
-
-        # Quarta guia: Comparação por Estação, se houver
-        if 'df_comp' in locals() and not df_comp.empty:
-            df_comp.to_excel(writer, sheet_name="Comparação por Estação", index=False)
-
-    relatorio_final = output.getvalue()
-
-    # Botão de download agora com dados reais
-    with col_download:
-        st.download_button(
-            "⬇️ Baixar Relatório",
-            data=relatorio_final,
-            file_name="Relatorio_Simulacao.xlsx",
-            use_container_width=True
-        )
-
