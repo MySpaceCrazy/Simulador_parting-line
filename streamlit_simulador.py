@@ -216,7 +216,7 @@ if uploaded_file is not None and iniciar:
 # --- Exibição do último resultado e relatórios ---
 col_esq, col_dir = st.columns([2, 2])
 
-with col_dir:
+with col_esq:
     if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
         sim = st.session_state.ultima_simulacao
         tempo_total = sim.get("tempo_total", None)
@@ -237,17 +237,17 @@ with col_dir:
             st.dataframe(df_relatorio_caixas)
 
         # Relatório resumido por loja (somando tempos das caixas de cada loja)
- with col_esq:
-    if not df_sim.empty and "ID_Loja" in df_sim.columns:
-        df_caixas_loja = df_sim[["ID_Caixas", "ID_Loja"]].drop_duplicates()
-        df_caixas_loja["Tempo_caixa"] = df_caixas_loja["ID_Caixas"].map(tempo_caixas)
-        df_relatorio_loja = df_caixas_loja.groupby("ID_Loja").agg(
-            Total_Caixas=("ID_Caixas", "count"),
-            Tempo_Total_Segundos=("Tempo_caixa", "sum")
-        ).reset_index()
-        df_relatorio_loja["Tempo Formatado"] = df_relatorio_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
-        st.markdown("### 🏬 Relatório resumido por Loja")
-        st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
+ with col_dir:
+        if not df_sim.empty and "ID_Loja" in df_sim.columns:
+            df_caixas_loja = df_sim[["ID_Caixas", "ID_Loja"]].drop_duplicates()
+            df_caixas_loja["Tempo_caixa"] = df_caixas_loja["ID_Caixas"].map(tempo_caixas)
+            df_relatorio_loja = df_caixas_loja.groupby("ID_Loja").agg(
+                Total_Caixas=("ID_Caixas", "count"),
+                Tempo_Total_Segundos=("Tempo_caixa", "sum")
+            ).reset_index()
+            df_relatorio_loja["Tempo Formatado"] = df_relatorio_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
+            st.markdown("### 🏬 Relatório resumido por Loja")
+            st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
 
 # --- Comparação com simulações anteriores ou arquivo externo ---
 st.markdown("---")
