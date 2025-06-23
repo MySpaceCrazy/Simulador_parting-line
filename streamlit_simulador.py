@@ -261,13 +261,14 @@ if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
             if len(ids) < 2 and uploaded_comp is None:
                 st.info("Nenhuma comparação possível: faça pelo menos duas simulações ou envie um arquivo para comparação.")
             else:
+
                 if uploaded_comp is not None:
                     try:
                         df_comp_ext = pd.read_excel(uploaded_comp)
                         df_comp_ext = df_comp_ext.sort_values(by=["ID_Pacote", "ID_Caixas"])
                         caixas_ext = df_comp_ext["ID_Caixas"].unique()
                         tempo_estacao_ext = defaultdict(float)
-
+                
                         for caixa in caixas_ext:
                             caixa_df = df_comp_ext[df_comp_ext["ID_Caixas"] == caixa]
                             for _, linha in caixa_df.iterrows():
@@ -275,7 +276,7 @@ if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
                                 contagem = linha["Contagem de Produto"]
                                 tempo = (contagem * tempo_produto) / pessoas_por_estacao + tempo_deslocamento
                                 tempo_estacao_ext[estacao] += tempo
-
+                
                         df2 = pd.DataFrame([
                             {"Estação": est, "Tempo (s)": tempo, "Simulação": "Arquivo Comparado"}
                             for est, tempo in tempo_estacao_ext.items()
@@ -283,10 +284,18 @@ if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
                         sim2_label = "Arquivo Comparado"
                         tempo2 = df2["Tempo (s)"].max()
                         caixas2 = len(caixas_ext)
-
+                
                         id1 = ids[-1] if ids else None
                         sim1 = st.session_state.simulacoes_salvas[id1] if id1 else None
-
+                
+                        if sim1 is not None:
+                            df1 = pd.DataFrame([
+                                {"Estação": est, "Tempo (s)": tempo, "Simulação": sim1["id"]}
+                                for est, tempo in sim1["tempo_por_estacao"].items()
+                            ])
+                        else:
+                            df1 = pd.DataFrame(columns=["Estação", "Tempo (s)", "Simulação"])
+                
                     except Exception as e:
                         st.error(f"Erro ao processar arquivo de comparação: {e}")
                         df2 = pd.DataFrame()
@@ -294,6 +303,7 @@ if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
                         caixas2 = 0
                         sim2_label = "Erro"
                         sim1 = None
+                        df1 = pd.DataFrame(columns=["Estação", "Tempo (s)", "Simulação"])
                 else:
                     # Comparação entre últimas 2 simulações
                     id1, id2 = ids[-2], ids[-1]
@@ -304,7 +314,7 @@ if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
                     caixas1 = sim1["total_caixas"]
                     caixas2 = sim2["total_caixas"]
                     sim2_label = id2
-
+                
                     df1 = pd.DataFrame([
                         {"Estação": est, "Tempo (s)": tempo, "Simulação": id1}
                         for est, tempo in sim1["tempo_por_estacao"].items()
