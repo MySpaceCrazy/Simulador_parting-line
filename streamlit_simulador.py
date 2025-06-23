@@ -66,8 +66,9 @@ with col_download:
                 df_temp["Tempo_caixa"] = df_temp["ID_Caixas"].map(sim["tempo_caixas"])
                 df_loja = df_temp.groupby("ID_Loja").agg(
                     Total_Caixas=("ID_Caixas", "count"),
-                    Tempo_Total_Segundos=("Tempo_caixa", "sum")
+                    Tempo_Total_Segundos=("Tempo_caixa", "max")
                 ).reset_index()
+
                 df_loja["Tempo formatado"] = df_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
                 df_loja.to_excel(writer, sheet_name="Por_Loja", index=False)
 
@@ -243,8 +244,9 @@ with col_esq:
             df_caixas_loja["Tempo_caixa"] = df_caixas_loja["ID_Caixas"].map(tempo_caixas)
             df_relatorio_loja = df_caixas_loja.groupby("ID_Loja").agg(
                 Total_Caixas=("ID_Caixas", "count"),
-                Tempo_Total_Segundos=("Tempo_caixa", "sum")
+                Tempo_Total_Segundos=("Tempo_caixa", "max")
             ).reset_index()
+
             with col_dir:
                 df_relatorio_loja["Tempo Formatado"] = df_relatorio_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
                 st.markdown("### 🏬 Relatório resumido por Loja")
