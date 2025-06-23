@@ -236,12 +236,13 @@ with col_dir:
             st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
 
         # Exibir os principais indicadores só se tempo_total existir
-        if tempo_total is not None:
-            st.markdown("---")
-            st.subheader("📊 Resultados da Simulação")
-            st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
-            st.write(f"📦 **Total de caixas simuladas:** {caixas}")
-            st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
+        with col_dir:
+            if tempo_total is not None:
+                st.markdown("---")
+                st.subheader("📊 Resultados da Simulação")
+                st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
+                st.write(f"📦 **Total de caixas simuladas:** {caixas}")
+                st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
     else:
         st.info("Nenhuma simulação realizada ainda.")
 
