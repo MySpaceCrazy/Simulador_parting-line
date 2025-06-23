@@ -284,6 +284,8 @@ if comparar_simulacoes:
 
                 id1 = ids[-1] if ids else None
                 sim1 = st.session_state.simulacoes_salvas[id1] if id1 else None
+                tempo1 = sim1.get("tempo_total", 0) if sim1 else 0
+                caixas1 = sim1.get("total_caixas", 0) if sim1 else 0
 
             except Exception as e:
                 st.error(f"Erro ao processar arquivo de comparação: {e}")
@@ -291,6 +293,8 @@ if comparar_simulacoes:
                 tempo2 = 0
                 caixas2 = 0
                 sim2_label = "Erro"
+                tempo1 = 0
+                caixas1 = 0
                 sim1 = None
         else:
             # Comparação entre últimas 2 simulações salvas
@@ -313,32 +317,26 @@ if comparar_simulacoes:
             ])
 
         if sim1 is not None and not df2.empty:
-            # Garante que tempo1 e caixas1 estejam definidos
-            if 'tempo1' not in locals():
-                tempo1 = sim1.get("tempo_total", 0)
-            if 'caixas1' not in locals():
-                caixas1 = sim1.get("total_caixas", 0)
-
             df1 = pd.DataFrame([
                 {"Estação": est, "Tempo (s)": tempo, "Simulação": sim1["id"]}
                 for est, tempo in sim1["tempo_por_estacao"].items()
             ])
 
             df_comp = pd.concat([df1, df2], ignore_index=True)
+            st.session_state.df_comp = df_comp
 
             st.markdown("### 📊 Comparativo de Tempo por Estação")
             fig_comp = px.bar(df_comp, x="Estação", y="Tempo (s)", color="Simulação", barmode="group")
             st.plotly_chart(fig_comp, use_container_width=True)
 
-            delta_tempo = tempo2 - tempo1 if tempo1 is not None and tempo2 is not None else 0
+            delta_tempo = tempo2 - tempo1 if tempo1 else 0
             abs_pct = abs(delta_tempo / tempo1 * 100) if tempo1 else 0
             direcao = "melhorou" if delta_tempo < 0 else "aumentou"
 
-            caixas_diferenca = caixas2 - caixas1 if caixas1 is not None and caixas2 is not None else 0
+            caixas_diferenca = caixas2 - caixas1 if caixas1 else 0
             caixas_pct = (caixas_diferenca / caixas1 * 100) if caixas1 else 0
 
             tempo_formatado = formatar_tempo(abs(delta_tempo))
-            # delta_color inverse: menor é verde, maior é vermelho
             st.metric(
                 "Delta de Tempo Total",
                 f"{tempo_formatado}",
