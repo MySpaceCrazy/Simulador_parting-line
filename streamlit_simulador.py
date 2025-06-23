@@ -234,9 +234,13 @@ with col_dir:
             df_relatorio_loja["Tempo Formatado"] = df_relatorio_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
             st.markdown("### 🏬 Relatório resumido por Loja")
             st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
-            
-        # Exibir os principais indicadores só se tempo_total existir
-   with col_esq: 
+
+with col_esq:
+    if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
+        tempo_total = st.session_state.ultima_simulacao.get("tempo_total", None)
+        gargalo = st.session_state.ultima_simulacao.get("gargalo", None)
+        caixas = st.session_state.ultima_simulacao.get("total_caixas", 0)
+
         if tempo_total is not None:
             st.markdown("---")
             st.subheader("📊 Resultados da Simulação")
