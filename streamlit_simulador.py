@@ -8,8 +8,9 @@ from datetime import datetime
 from pathlib import Path
 import pytz
 
-st.set_page_config(page_title="Simulador de Separação", layout="wide")
-col_titulo, col_botao = st.columns([4, 1])
+st.set_page_config(page_title="Simulador de Separação de Produtos", layout="wide")
+
+col_titulo, col_botao, col_vazio = st.columns([5, 2, 10])
 
 with col_titulo:
     st.title("🧪 Simulador de Separação de Produtos")
