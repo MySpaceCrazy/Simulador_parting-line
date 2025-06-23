@@ -1,4 +1,3 @@
-# versão final.3.0 - streamlit_simulador.py
 # streamlit_simulador.py
 import streamlit as st
 import pandas as pd
@@ -11,6 +10,7 @@ import pytz
 
 st.set_page_config(page_title="Simulador de Separação de Produtos", layout="wide")
 
+# --- Cabeçalho com título e botão iniciar ---
 col_titulo, col_botao, col_vazio = st.columns([5, 2, 2])
 
 with col_titulo:
@@ -19,10 +19,10 @@ with col_titulo:
 with col_botao:
     iniciar = st.button("▶️ Iniciar Simulação", use_container_width=True)
 
-# Layout colunas principais
+# --- Layout principal: colunas esquerda e direita ---
 col_esq, col_dir = st.columns([2, 2])
 
-# Entrada de parâmetros (lado esquerdo)
+# --- Entrada de parâmetros no lado esquerdo ---
 with col_esq:
     tempo_produto = st.number_input("⏱️ Tempo médio por produto (s)", value=20.0, step=1.0, format="%.2f")
     tempo_deslocamento = st.number_input("🚚 Tempo entre estações (s)", value=5.0, step=1.0, format="%.2f")
@@ -31,14 +31,21 @@ with col_esq:
     tempo_adicional_caixa = st.number_input("➕ Tempo adicional por caixa (s)", value=0.0, step=1.0, format="%.2f")
     novo_arquivo = st.file_uploader("📂 Arquivo para Simulação", type=["xlsx"], key="upload_simulacao")
 
-# Salva o arquivo no estado, se for novo upload
+# --- Salva os parâmetros no session_state para uso no relatório ---
+st.session_state.tempo_produto = tempo_produto
+st.session_state.tempo_deslocamento = tempo_deslocamento
+st.session_state.capacidade_estacao = capacidade_estacao
+st.session_state.pessoas_por_estacao = pessoas_por_estacao
+st.session_state.tempo_adicional_caixa = tempo_adicional_caixa
+
+# --- Salva arquivo no session_state, se for novo upload ---
 if novo_arquivo is not None:
     st.session_state.arquivo_atual = novo_arquivo
 
-# Usa o arquivo do estado, se disponível
+# --- Usa arquivo salvo na sessão ---
 uploaded_file = st.session_state.get("arquivo_atual", None)
 
-# Função para formatar tempo
+# --- Função para formatar tempo ---
 def formatar_tempo(segundos):
     if segundos < 60:
         return f"{int(round(segundos))} segundos"
@@ -49,13 +56,17 @@ def formatar_tempo(segundos):
     minutos = int(segundos // 60)
     segundos = int(round(segundos % 60))
     partes = []
-    if dias > 0: partes.append(f"{dias} {'dia' if dias == 1 else 'dias'}")
-    if horas > 0: partes.append(f"{horas} {'hora' if horas == 1 else 'horas'}")
-    if minutos > 0: partes.append(f"{minutos} {'minuto' if minutos == 1 else 'minutos'}")
-    if segundos > 0: partes.append(f"{segundos} {'segundo' if segundos == 1 else 'segundos'}")
+    if dias > 0:
+        partes.append(f"{dias} {'dia' if dias == 1 else 'dias'}")
+    if horas > 0:
+        partes.append(f"{horas} {'hora' if horas == 1 else 'horas'}")
+    if minutos > 0:
+        partes.append(f"{minutos} {'minuto' if minutos == 1 else 'minutos'}")
+    if segundos > 0:
+        partes.append(f"{segundos} {'segundo' if segundos == 1 else 'segundos'}")
     return " e ".join(partes)
 
-# Inicializa session_state
+# --- Inicializa session_state para simulações ---
 if "simulacoes_salvas" not in st.session_state:
     st.session_state.simulacoes_salvas = {}
 if "ultima_simulacao" not in st.session_state:
@@ -63,17 +74,17 @@ if "ultima_simulacao" not in st.session_state:
 if "ordem_simulacoes" not in st.session_state:
     st.session_state.ordem_simulacoes = []
 
-# Upload para comparação externo
+# --- Upload para comparação externa ---
 st.markdown("---")
 st.subheader("📁 Comparação com Outro Arquivo Excel (Opcional)")
 uploaded_comp = st.file_uploader("📁 Arquivo para Comparação", type=["xlsx"], key="upload_comparacao")
 
-# Botão de simulação e opções
+# --- Botões e opções adicionais no lado esquerdo ---
 with col_esq:
     ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=True)
-    comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True,  disabled=True)
+    comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True, disabled=True)
 
-# Início da simulação
+# --- Inicia a simulação após clicar no botão e ter arquivo ---
 if uploaded_file is not None and iniciar:
     try:
         df = pd.read_excel(uploaded_file)
@@ -87,6 +98,7 @@ if uploaded_file is not None and iniciar:
         tempo_gargalo = None
         tempo_total_simulacao = 0
 
+        # --- Estima tempo total para ordenar caixas ---
         for caixa in caixas:
             caixa_df = df[df["ID_Caixas"] == caixa]
             total_produtos = caixa_df["Contagem de Produto"].sum()
@@ -96,6 +108,7 @@ if uploaded_file is not None and iniciar:
 
         caixas_ordenadas = [cx for cx, _ in sorted(estimativas, key=lambda x: x[1])]
 
+        # --- Calcula tempos reais respeitando capacidade e gargalos ---
         for caixa in caixas_ordenadas:
             caixa_df = df[df["ID_Caixas"] == caixa]
             tempo_inicio_caixa = 0
@@ -125,7 +138,7 @@ if uploaded_file is not None and iniciar:
             tempo_caixas[caixa] = fim_caixa - tempo_inicio_caixa
             tempo_total_simulacao = max(tempo_total_simulacao, fim_caixa)
 
-        # Guarda dados na sessão
+        # --- Salva dados da simulação no session_state ---
         fuso_brasil = pytz.timezone("America/Sao_Paulo")
         data_hora = datetime.now(fuso_brasil).strftime("%Y-%m-%d_%Hh%Mmin")
         nome_base = Path(uploaded_file.name).stem
@@ -144,6 +157,7 @@ if uploaded_file is not None and iniciar:
         st.session_state.simulacoes_salvas[id_simulacao] = st.session_state.ultima_simulacao
         st.session_state.ordem_simulacoes.append(id_simulacao)
 
+        # Mantém no máximo 5 simulações salvas
         if len(st.session_state.simulacoes_salvas) > 5:
             ids = sorted(st.session_state.simulacoes_salvas)[-5:]
             st.session_state.simulacoes_salvas = {k: st.session_state.simulacoes_salvas[k] for k in ids}
@@ -154,7 +168,7 @@ if uploaded_file is not None and iniciar:
     except Exception as e:
         st.error(f"Erro ao processar o arquivo: {e}")
 
-    # Exibição do último resultado e relatórios no lado direito
+    # --- Exibição do último resultado e relatórios no lado direito ---
     with col_dir:
         if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
             sim = st.session_state.ultima_simulacao
@@ -164,8 +178,7 @@ if uploaded_file is not None and iniciar:
             caixas = sim["total_caixas"]
             tempo_caixas = sim["tempo_caixas"]
             df_sim = sim.get("df_simulacao", pd.DataFrame())
-        
-    
+
             # Relatório detalhado por caixa com tempo
             if tempo_caixas:
                 df_relatorio_caixas = pd.DataFrame([
@@ -175,7 +188,7 @@ if uploaded_file is not None and iniciar:
                 df_relatorio_caixas = df_relatorio_caixas.sort_values(by="Tempo total da caixa (s)", ascending=False)
                 st.markdown("### 🗂️ Relatório detalhado por Caixa")
                 st.dataframe(df_relatorio_caixas)
-        
+
             # Relatório resumido por loja (somando tempos das caixas de cada loja)
             if not df_sim.empty and "ID_Loja" in df_sim.columns:
                 # cria df caixa->loja
@@ -190,15 +203,73 @@ if uploaded_file is not None and iniciar:
                 df_relatorio_loja["Tempo Formatado"] = df_relatorio_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
                 st.markdown("### 🏬 Relatório resumido por Loja")
                 st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
-                
-    with col_esq:        
+
+            # Resultados resumidos
             st.markdown("---")
             st.subheader("📊 Resultados da Simulação")
             st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
             st.write(f"📦 **Total de caixas simuladas:** {caixas}")
             st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
 
-        # Sugestão layout otimizado (já no relatório principal)
+            # --- Botão para baixar relatório Excel ---
+            buffer = io.BytesIO()
+            with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+
+                # Monta resumo de parâmetros e resultados
+                resumo = {
+                    "Parâmetros": [
+                        f"Tempo médio por produto: {st.session_state.tempo_produto}s",
+                        f"Tempo entre estações: {st.session_state.tempo_deslocamento}s",
+                        f"Capacidade por estação: {st.session_state.capacidade_estacao}",
+                        f"Pessoas por estação: {st.session_state.pessoas_por_estacao}",
+                        f"Tempo adicional por caixa: {st.session_state.tempo_adicional_caixa}s"
+                    ],
+                    "Resultados": [
+                        f"Tempo total simulação: {formatar_tempo(tempo_total)}",
+                        f"Total de caixas: {caixas}",
+                        f"Tempo até primeiro gargalo: {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}"
+                    ]
+                }
+
+                df_resumo = pd.DataFrame({
+                    "Descrição": ["Parâmetros"] + resumo["Parâmetros"] + ["", "Resultados"] + resumo["Resultados"]
+                })
+                df_resumo.to_excel(writer, sheet_name="Resumo_Simulação", index=False)
+
+                # Planilha por caixa
+                if sim.get("tempo_caixas"):
+                    df_caixas = pd.DataFrame([
+                        {"Caixa": cx, "Tempo Total (s)": t, "Tempo Formatado": formatar_tempo(t)}
+                        for cx, t in sim["tempo_caixas"].items()
+                    ])
+                    df_caixas.to_excel(writer, sheet_name="Por_Caixa", index=False)
+
+                # Planilha por loja
+                if not df_sim.empty and "ID_Loja" in df_sim.columns:
+                    df_lojas = df_sim[["ID_Caixas", "ID_Loja"]].drop_duplicates()
+                    df_lojas["Tempo_Caixa"] = df_lojas["ID_Caixas"].map(sim["tempo_caixas"])
+                    df_lojas_resumo = df_lojas.groupby("ID_Loja").agg(
+                        Total_Caixas=("ID_Caixas", "count"),
+                        Tempo_Total_Segundos=("Tempo_Caixa", "sum")
+                    ).reset_index()
+                    df_lojas_resumo["Tempo Formatado"] = df_lojas_resumo["Tempo_Total_Segundos"].apply(formatar_tempo)
+                    df_lojas_resumo.to_excel(writer, sheet_name="Por_Loja", index=False)
+
+                # Planilha de comparação por estação (se existir)
+                if "df_comp" in locals() and not df_comp.empty:
+                    df_comp.to_excel(writer, sheet_name="Comparativo", index=False)
+
+            relatorio_bytes = buffer.getvalue()
+
+            st.download_button(
+                label="📥 Baixar Relatórios",
+                data=relatorio_bytes,
+                file_name=f"Relatorio_Simulacao_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
+            )
+
+    # --- Sugestão layout otimizado ---
     if 'df_comp' in locals() and not df_comp.empty:
         st.markdown("---")
         st.subheader("🧠 Sugestão de Layout Otimizado")
@@ -215,7 +286,7 @@ if uploaded_file is not None and iniciar:
         else:
             st.success("🚀 Nenhuma estação sobrecarregada detectada.")
 
-# Comparação com simulações anteriores ou arquivo externo
+# --- Comparação com simulações anteriores ou arquivo externo ---
 if comparar_simulacoes:
     st.markdown("---")
 
@@ -266,54 +337,37 @@ if comparar_simulacoes:
             tempo2 = sim2["tempo_total"]
             caixas1 = sim1["total_caixas"]
             caixas2 = sim2["total_caixas"]
+            sim1_label = id1
             sim2_label = id2
 
             df1 = pd.DataFrame([
-                {"Estação": est, "Tempo (s)": tempo, "Simulação": id1}
+                {"Estação": est, "Tempo (s)": tempo}
                 for est, tempo in sim1["tempo_por_estacao"].items()
             ])
             df2 = pd.DataFrame([
-                {"Estação": est, "Tempo (s)": tempo, "Simulação": id2}
+                {"Estação": est, "Tempo (s)": tempo}
                 for est, tempo in sim2["tempo_por_estacao"].items()
             ])
 
-        if sim1 is not None and not df2.empty:
-            if 'tempo1' not in locals():
-                tempo1 = sim1["tempo_total"]
-            if 'caixas1' not in locals():
-                caixas1 = sim1["total_caixas"]
+        # Junta os dados para gráfico
+        if 'df1' in locals() and not df1.empty and not df2.empty:
+            df1["Simulação"] = sim1_label
+            df2["Simulação"] = sim2_label
+            df_comp = pd.concat([df1, df2])
 
-            df1 = pd.DataFrame([
-                {"Estação": est, "Tempo (s)": tempo, "Simulação": sim1["id"]}
-                for est, tempo in sim1["tempo_por_estacao"].items()
-            ])
+            fig = px.bar(df_comp, x="Estação", y="Tempo (s)", color="Simulação",
+                         barmode="group", title="⏳ Comparativo de Tempo por Estação")
+            st.plotly_chart(fig, use_container_width=True)
 
-            df_comp = pd.concat([df1, df2], ignore_index=True)
+            st.markdown(f"Tempo total simulação 1 ({sim1_label}): {formatar_tempo(tempo1)}")
+            st.markdown(f"Tempo total simulação 2 ({sim2_label}): {formatar_tempo(tempo2)}")
+            st.markdown(f"Caixas simulação 1: {caixas1}")
+            st.markdown(f"Caixas simulação 2: {caixas2}")
 
-            st.markdown("### 📊 Comparativo de Tempo por Estação")
-            fig_comp = px.bar(df_comp, x="Estação", y="Tempo (s)", color="Simulação", barmode="group")
-            st.plotly_chart(fig_comp, use_container_width=True)
+        else:
+            st.info("Não há dados suficientes para gerar comparativo.")
 
-            delta_tempo = tempo2 - tempo1
-            abs_pct = abs(delta_tempo / tempo1 * 100) if tempo1 else 0
-            direcao = "melhorou" if delta_tempo < 0 else "aumentou"
-
-            caixas_diferenca = caixas2 - caixas1
-            caixas_pct = (caixas_diferenca / caixas1 * 100) if caixas1 else 0
-
-            tempo_formatado = formatar_tempo(abs(delta_tempo))
-            # Força a lógica onde diminuir o tempo é positivo (verde), aumentar é negativo (vermelho)
-            st.metric(
-                "Delta de Tempo Total",
-                f"{tempo_formatado}",
-                f"{delta_tempo:+.0f}s ({abs_pct:.1f}% {direcao})",
-                delta_color="inverse"  # menor é verde, maior é vermelho
-            )
-            
-            st.write(f"📦 **Caixas Base:** {caixas1} | **Comparada:** {caixas2} | Δ {caixas_diferenca:+} caixas ({caixas_pct:+.1f}%)")
-
-            
-
-elif uploaded_comp is not None:
-    st.warning("⚠️ Para comparar corretamente, primeiro clique em '▶️ Iniciar Simulação' com o novo arquivo carregado.")
+else:
+    if not iniciar:
+        st.info("Faça o upload do arquivo e clique em '▶️ Iniciar Simulação' para começar.")
 
