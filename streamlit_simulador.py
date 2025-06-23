@@ -62,8 +62,8 @@ uploaded_comp = st.file_uploader("📁 Arquivo para Comparação", type=["xlsx"]
 
 # Botão de simulação e opções
 with col_esq:
-    ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=False)
-    comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True, disabled=False)
+    ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=True)
+    comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True,  disabled=True)
 
 # Início da simulação
 if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
