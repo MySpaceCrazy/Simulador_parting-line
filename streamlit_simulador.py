@@ -116,7 +116,6 @@ if "ordem_simulacoes" not in st.session_state:
     st.session_state.ordem_simulacoes = []
 
 # Upload Comparação externo
-st.markdown("---")
 
 with col_esq:
     ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=True, key="ver_graficos")
@@ -212,7 +211,7 @@ if uploaded_file is not None and iniciar:
 # --- Exibição do último resultado e relatórios ---
 col_esq, col_dir = st.columns([2, 2])
 
-with col_esq, col_dir:
+with:
     if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
         tempo_total = st.session_state.ultima_simulacao.get("tempo_total", None)
         gargalo = st.session_state.ultima_simulacao.get("gargalo", None)
@@ -223,9 +222,10 @@ with col_esq, col_dir:
             st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
             st.write(f"📦 **Total de caixas simuladas:** {caixas}")
             st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
+            st.markdown("---")
     else:
         st.info("Nenhuma simulação realizada ainda.")
-        st.markdown("---")
+        
 with col_esq:
     if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
         sim = st.session_state.ultima_simulacao
