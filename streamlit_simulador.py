@@ -203,7 +203,14 @@ if uploaded_file is not None and iniciar:
             "id": id_simulacao,
             "df_simulacao": df
         }
+        # ⚠️ Aqui o teste para duplicação:
+        duplicadas = df[["ID_Caixas", "ID_Loja"]].duplicated(keep=False)
+        df_duplicadas = df[duplicadas]
 
+        if not df_duplicadas.empty:
+            st.warning("⚠️ Atenção: Existem caixas associadas a mais de uma loja ou registros duplicados!")
+            st.dataframe(df_duplicadas)
+            
         st.session_state.simulacoes_salvas[id_simulacao] = st.session_state.ultima_simulacao
         st.session_state.ordem_simulacoes.append(id_simulacao)
 
@@ -241,7 +248,7 @@ with col_esq:
         # Relatório resumido por loja (somando tempos das caixas de cada loja)
  
         if not df_sim.empty and "ID_Loja" in df_sim.columns:
-            df_caixas_loja = df_sim[["ID_Caixas", "ID_Loja"]].drop_duplicates()
+            df_caixas_loja = df_sim.groupby("ID_Caixas").agg(ID_Loja=("ID_Loja", "first")).reset_index()
             df_caixas_loja["Tempo_caixa"] = df_caixas_loja["ID_Caixas"].map(tempo_caixas)
             df_relatorio_loja = df_caixas_loja.groupby("ID_Loja").agg(
                 Total_Caixas=("ID_Caixas", "count"),
