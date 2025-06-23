@@ -211,7 +211,7 @@ if uploaded_file is not None and iniciar:
 # --- Exibição do último resultado e relatórios ---
 col_esq, col_dir = st.columns([2, 2])
 
-
+with rs_simu is not None:
     if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
         tempo_total = st.session_state.ultima_simulacao.get("tempo_total", None)
         gargalo = st.session_state.ultima_simulacao.get("gargalo", None)
