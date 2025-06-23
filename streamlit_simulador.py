@@ -71,7 +71,6 @@ uploaded_comp = st.file_uploader("📁 Arquivo para Comparação", type=["xlsx"]
 with col_esq:
     ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=True)
     comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True,  disabled=True)
-    output = io.BytesIO()
 
 # Início da simulação
 if uploaded_file is not None and iniciar:
