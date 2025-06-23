@@ -115,7 +115,6 @@ if "ordem_simulacoes" not in st.session_state:
     st.session_state.ordem_simulacoes = []
 
 # Upload Comparação externo
-st.markdown("---")
 
 with col_esq:
     ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=True, key="ver_graficos")
@@ -242,7 +241,6 @@ with col_esq:
         caixas = st.session_state.ultima_simulacao.get("total_caixas", 0)
 
         if tempo_total is not None:
-            st.markdown("---")
             st.subheader("📊 Resultados da Simulação")
             st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
             st.write(f"📦 **Total de caixas simuladas:** {caixas}")
