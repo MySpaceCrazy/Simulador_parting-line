@@ -9,7 +9,13 @@ from pathlib import Path
 import pytz
 
 st.set_page_config(page_title="Simulador de Separação", layout="wide")
-st.title("🧪 Simulador de Separação de Produtos")
+col_titulo, col_botao = st.columns([4, 1])
+
+with col_titulo:
+    st.title("🧪 Simulador de Separação de Produtos")
+
+with col_botao:
+    iniciar = st.button("▶️ Iniciar Simulação", use_container_width=True)
 
 # Layout colunas principais
 col_esq, col_dir = st.columns([2, 2])
@@ -66,7 +72,7 @@ with col_esq:
     comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True,  disabled=True)
 
 # Início da simulação
-if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
+if uploaded_file is not None and iniciar:
     try:
         df = pd.read_excel(uploaded_file)
         df = df.sort_values(by=["ID_Pacote", "ID_Caixas"])
