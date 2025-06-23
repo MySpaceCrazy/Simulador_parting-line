@@ -10,7 +10,7 @@ import pytz
 
 st.set_page_config(page_title="Simulador de Separação de Produtos", layout="wide")
 
-col_titulo, col_botao, col_vazio = st.columns([5, 2, 5])
+col_titulo, col_botao, col_vazio = st.columns([6, 2, 5])
 
 with col_titulo:
     st.title("🧪 Simulador de Separação de Produtos")
