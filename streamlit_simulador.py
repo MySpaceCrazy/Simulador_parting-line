@@ -201,17 +201,18 @@ if uploaded_file is not None and iniciar:
 
     except Exception as e:
         st.error(f"Erro ao processar o arquivo: {e}")
+        
 # --- Exibição do último resultado e relatórios ---
 col_esq, col_dir = st.columns([2, 2])
 
 with col_dir:
     if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
         sim = st.session_state.ultima_simulacao
-        tempo_total = sim["tempo_total"]
-        gargalo = sim["gargalo"]
-        tempo_por_estacao = sim["tempo_por_estacao"]
-        caixas = sim["total_caixas"]
-        tempo_caixas = sim["tempo_caixas"]
+        tempo_total = sim.get("tempo_total", None)
+        gargalo = sim.get("gargalo", None)
+        tempo_por_estacao = sim.get("tempo_por_estacao", {})
+        caixas = sim.get("total_caixas", 0)
+        tempo_caixas = sim.get("tempo_caixas", {})
         df_sim = sim.get("df_simulacao", pd.DataFrame())
 
         # Relatório detalhado por caixa com tempo
@@ -236,12 +237,16 @@ with col_dir:
             st.markdown("### 🏬 Relatório resumido por Loja")
             st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
 
-with col_esq:
-    st.markdown("---")
-    st.subheader("📊 Resultados da Simulação")
-    st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
-    st.write(f"📦 **Total de caixas simuladas:** {caixas}")
-    st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
+        # Exibir os principais indicadores só se tempo_total existir
+        if tempo_total is not None:
+            st.markdown("---")
+            st.subheader("📊 Resultados da Simulação")
+            st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
+            st.write(f"📦 **Total de caixas simuladas:** {caixas}")
+            st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
+    else:
+        st.info("Nenhuma simulação realizada ainda.")
+
 
 # --- Comparação com simulações anteriores ou arquivo externo ---
 st.markdown("---")
