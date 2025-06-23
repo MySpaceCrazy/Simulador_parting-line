@@ -1,3 +1,4 @@
+# versão final.3.0 - streamlit_simulador.py
 # streamlit_simulador.py
 import streamlit as st
 import pandas as pd
@@ -10,16 +11,18 @@ import pytz
 
 st.set_page_config(page_title="Simulador de Separação de Produtos", layout="wide")
 
-col_titulo, col_botao_sim, col_vazio = st.columns([5, 2, 3])
+col_titulo, col_botao, col_vazio = st.columns([5, 2, 2])
 
 with col_titulo:
-    st.title("🔪 Simulador de Separação de Produtos")
+    st.title("🧪 Simulador de Separação de Produtos")
 
-with col_botao_sim:
+with col_botao:
     iniciar = st.button("▶️ Iniciar Simulação", use_container_width=True)
 
+# Layout colunas principais
 col_esq, col_dir = st.columns([2, 2])
 
+# Entrada de parâmetros (lado esquerdo)
 with col_esq:
     tempo_produto = st.number_input("⏱️ Tempo médio por produto (s)", value=20.0, step=1.0, format="%.2f")
     tempo_deslocamento = st.number_input("🚚 Tempo entre estações (s)", value=5.0, step=1.0, format="%.2f")
@@ -28,17 +31,14 @@ with col_esq:
     tempo_adicional_caixa = st.number_input("➕ Tempo adicional por caixa (s)", value=0.0, step=1.0, format="%.2f")
     novo_arquivo = st.file_uploader("📂 Arquivo para Simulação", type=["xlsx"], key="upload_simulacao")
 
-st.session_state.tempo_produto = tempo_produto
-st.session_state.tempo_deslocamento = tempo_deslocamento
-st.session_state.capacidade_estacao = capacidade_estacao
-st.session_state.pessoas_por_estacao = pessoas_por_estacao
-st.session_state.tempo_adicional_caixa = tempo_adicional_caixa
-
+# Salva o arquivo no estado, se for novo upload
 if novo_arquivo is not None:
     st.session_state.arquivo_atual = novo_arquivo
 
+# Usa o arquivo do estado, se disponível
 uploaded_file = st.session_state.get("arquivo_atual", None)
 
+# Função para formatar tempo
 def formatar_tempo(segundos):
     if segundos < 60:
         return f"{int(round(segundos))} segundos"
@@ -55,6 +55,7 @@ def formatar_tempo(segundos):
     if segundos > 0: partes.append(f"{segundos} {'segundo' if segundos == 1 else 'segundos'}")
     return " e ".join(partes)
 
+# Inicializa session_state
 if "simulacoes_salvas" not in st.session_state:
     st.session_state.simulacoes_salvas = {}
 if "ultima_simulacao" not in st.session_state:
@@ -62,14 +63,17 @@ if "ultima_simulacao" not in st.session_state:
 if "ordem_simulacoes" not in st.session_state:
     st.session_state.ordem_simulacoes = []
 
+# Upload para comparação externo
 st.markdown("---")
 st.subheader("📁 Comparação com Outro Arquivo Excel (Opcional)")
 uploaded_comp = st.file_uploader("📁 Arquivo para Comparação", type=["xlsx"], key="upload_comparacao")
 
+# Botão de simulação e opções
 with col_esq:
     ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=True)
-    comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True, disabled=True)
+    comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True,  disabled=True)
 
+# Início da simulação
 if uploaded_file is not None and iniciar:
     try:
         df = pd.read_excel(uploaded_file)
@@ -121,6 +125,7 @@ if uploaded_file is not None and iniciar:
             tempo_caixas[caixa] = fim_caixa - tempo_inicio_caixa
             tempo_total_simulacao = max(tempo_total_simulacao, fim_caixa)
 
+        # Guarda dados na sessão
         fuso_brasil = pytz.timezone("America/Sao_Paulo")
         data_hora = datetime.now(fuso_brasil).strftime("%Y-%m-%d_%Hh%Mmin")
         nome_base = Path(uploaded_file.name).stem
@@ -133,73 +138,58 @@ if uploaded_file is not None and iniciar:
             "total_caixas": len(caixas),
             "tempo_caixas": tempo_caixas,
             "id": id_simulacao,
-            "df_simulacao": df
+            "df_simulacao": df  # salva o dataframe para relatórios
         }
 
         st.session_state.simulacoes_salvas[id_simulacao] = st.session_state.ultima_simulacao
         st.session_state.ordem_simulacoes.append(id_simulacao)
 
+        if len(st.session_state.simulacoes_salvas) > 5:
+            ids = sorted(st.session_state.simulacoes_salvas)[-5:]
+            st.session_state.simulacoes_salvas = {k: st.session_state.simulacoes_salvas[k] for k in ids}
+            st.session_state.ordem_simulacoes = ids
+
+        #st.success(f"✅ Simulação salva como ID: {id_simulacao}")
+
     except Exception as e:
         st.error(f"Erro ao processar o arquivo: {e}")
 
+    # Exibição do último resultado e relatórios no lado direito
     with col_dir:
-        sim = st.session_state.ultima_simulacao
-        tempo_total = sim["tempo_total"]
-        gargalo = sim["gargalo"]
-        caixas = sim["total_caixas"]
-        tempo_por_estacao = sim["tempo_por_estacao"]
-        tempo_caixas = sim["tempo_caixas"]
-        df_sim = sim.get("df_simulacao", pd.DataFrame())
-
-        buffer = io.BytesIO()
-        with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-            resumo = {
-                "Parâmetros": [
-                    f"Tempo médio por produto: {tempo_produto}s",
-                    f"Tempo entre estações: {tempo_deslocamento}s",
-                    f"Capacidade por estação: {capacidade_estacao}",
-                    f"Pessoas por estação: {pessoas_por_estacao}",
-                    f"Tempo adicional por caixa: {tempo_adicional_caixa}s"
-                ],
-                "Resultados": [
-                    f"Tempo total simulação: {formatar_tempo(tempo_total)}",
-                    f"Total de caixas: {caixas}",
-                    f"Tempo até primeiro gargalo: {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}"
-                ]
-            }
-
-            df_resumo = pd.DataFrame({"Descrição": ["Parâmetros"] + resumo["Parâmetros"] + ["", "Resultados"] + resumo["Resultados"]})
-            df_resumo.to_excel(writer, sheet_name="Resumo_Simulação", index=False)
-
+        if "ultima_simulacao" in st.session_state and st.session_state.ultima_simulacao:
+            sim = st.session_state.ultima_simulacao
+            tempo_total = sim["tempo_total"]
+            gargalo = sim["gargalo"]
+            tempo_por_estacao = sim["tempo_por_estacao"]
+            caixas = sim["total_caixas"]
+            tempo_caixas = sim["tempo_caixas"]
+            df_sim = sim.get("df_simulacao", pd.DataFrame())
+        
+    
+            # Relatório detalhado por caixa com tempo
             if tempo_caixas:
-                df_caixas = pd.DataFrame([
-                    {"Caixa": cx, "Tempo Total (s)": t, "Tempo Formatado": formatar_tempo(t)} for cx, t in tempo_caixas.items()
+                df_relatorio_caixas = pd.DataFrame([
+                    {"Caixa": cx, "Tempo total da caixa (s)": t, "Tempo formatado": formatar_tempo(t)}
+                    for cx, t in tempo_caixas.items()
                 ])
-                df_caixas.to_excel(writer, sheet_name="Por_Caixa", index=False)
-
+                df_relatorio_caixas = df_relatorio_caixas.sort_values(by="Tempo total da caixa (s)", ascending=False)
+                st.markdown("### 🗂️ Relatório detalhado por Caixa")
+                st.dataframe(df_relatorio_caixas)
+        
+            # Relatório resumido por loja (somando tempos das caixas de cada loja)
             if not df_sim.empty and "ID_Loja" in df_sim.columns:
-                df_lojas = df_sim[["ID_Caixas", "ID_Loja"]].drop_duplicates()
-                df_lojas["Tempo_Caixa"] = df_lojas["ID_Caixas"].map(tempo_caixas)
-                df_lojas_resumo = df_lojas.groupby("ID_Loja").agg(
+                # cria df caixa->loja
+                df_caixas_loja = df_sim[["ID_Caixas", "ID_Loja"]].drop_duplicates()
+                # junta tempo por caixa
+                df_caixas_loja["Tempo_caixa"] = df_caixas_loja["ID_Caixas"].map(tempo_caixas)
+                # agrupa por loja
+                df_relatorio_loja = df_caixas_loja.groupby("ID_Loja").agg(
                     Total_Caixas=("ID_Caixas", "count"),
-                    Tempo_Total_Segundos=("Tempo_Caixa", "sum")
+                    Tempo_Total_Segundos=("Tempo_caixa", "sum")
                 ).reset_index()
-                df_lojas_resumo["Tempo Formatado"] = df_lojas_resumo["Tempo_Total_Segundos"].apply(formatar_tempo)
-                df_lojas_resumo.to_excel(writer, sheet_name="Por_Loja", index=False)
-
-        relatorio_bytes = buffer.getvalue()
-
-        st.download_button(
-            label="📅 Baixar Relatórios",
-            data=relatorio_bytes,
-            file_name=f"Relatorio_Simulacao_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True
-        )
-
-                
-        st.markdown("### 🏬 Relatório resumido por Loja")
-        st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
+                df_relatorio_loja["Tempo Formatado"] = df_relatorio_loja["Tempo_Total_Segundos"].apply(formatar_tempo)
+                st.markdown("### 🏬 Relatório resumido por Loja")
+                st.dataframe(df_relatorio_loja.sort_values(by="Tempo_Total_Segundos", ascending=False))
                 
     with col_esq:        
             st.markdown("---")
