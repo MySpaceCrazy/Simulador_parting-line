@@ -64,11 +64,7 @@ uploaded_comp = st.file_uploader("📁 Arquivo para Comparação", type=["xlsx"]
 with col_esq:
     ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=True)
     comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True,  disabled=True)
-    st.markdown("---")
-    st.subheader("📊 Resultados da Simulação")
-    st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
-    st.write(f"📦 **Total de caixas simuladas:** {caixas}")
-    st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
+
 # Início da simulação
 if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
     try:
@@ -160,9 +156,7 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
             caixas = sim["total_caixas"]
             tempo_caixas = sim["tempo_caixas"]
             df_sim = sim.get("df_simulacao", pd.DataFrame())
-            
-       
-
+        
     
             # Relatório detalhado por caixa com tempo
             if tempo_caixas:
@@ -173,7 +167,14 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
                 df_relatorio_caixas = df_relatorio_caixas.sort_values(by="Tempo total da caixa (s)", ascending=False)
                 st.markdown("### 🗂️ Relatório detalhado por Caixa")
                 st.dataframe(df_relatorio_caixas)
-    
+
+    with col_esq:        
+            st.markdown("---")
+            st.subheader("📊 Resultados da Simulação")
+            st.write(f"🔚 **Tempo total para separar todas as caixas:** {formatar_tempo(tempo_total)}")
+            st.write(f"📦 **Total de caixas simuladas:** {caixas}")
+            st.write(f"🧱 **Tempo até o primeiro gargalo:** {formatar_tempo(gargalo) if gargalo else 'Nenhum gargalo'}")
+        
             # Relatório resumido por loja (somando tempos das caixas de cada loja)
             if not df_sim.empty and "ID_Loja" in df_sim.columns:
                 # cria df caixa->loja
