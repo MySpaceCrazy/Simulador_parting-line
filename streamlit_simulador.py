@@ -120,8 +120,8 @@ st.subheader("📁 Comparação com Outro Arquivo Excel (Opcional)")
 uploaded_comp = st.file_uploader("📁 Arquivo para Comparação", type=["xlsx"], key="upload_comparacao")
 
 with col_esq:
-    ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=True)
-    comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True, disabled=True)
+    ver_graficos = st.checkbox("📊 Ver gráficos e dashboards", value=True, disabled=True, key="ver_graficos")
+    comparar_simulacoes = st.checkbox("🔁 Comparar com simulações anteriores ou Excel", value=True, disabled=True, key="comparar_simulacoes")
 
 # --- Início da Simulação ---
 if uploaded_file is not None and iniciar:
