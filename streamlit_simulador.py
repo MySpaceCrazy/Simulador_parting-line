@@ -118,10 +118,10 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
             tempo_total_simulacao = max(tempo_total_simulacao, fim_caixa)
 
         # Guarda dados na sessão
-        #fuso_brasil = pytz.timezone("America/Sao_Paulo")
-        #data_hora = datetime.now(fuso_brasil).strftime("%Y-%m-%d_%Hh%Mmin")
-        #nome_base = Path(uploaded_file.name).stem
-        #id_simulacao = f"{nome_base}_{data_hora}"
+        fuso_brasil = pytz.timezone("America/Sao_Paulo")
+        data_hora = datetime.now(fuso_brasil).strftime("%Y-%m-%d_%Hh%Mmin")
+        nome_base = Path(uploaded_file.name).stem
+        id_simulacao = f"{nome_base}_{data_hora}"
 
         st.session_state.ultima_simulacao = {
             "tempo_total": tempo_total_simulacao,
@@ -141,7 +141,7 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
             st.session_state.simulacoes_salvas = {k: st.session_state.simulacoes_salvas[k] for k in ids}
             st.session_state.ordem_simulacoes = ids
 
-        st.success(f"✅ Simulação salva como ID: {id_simulacao}")
+        #st.success(f"✅ Simulação salva como ID: {id_simulacao}")
 
     except Exception as e:
         st.error(f"Erro ao processar o arquivo: {e}")
