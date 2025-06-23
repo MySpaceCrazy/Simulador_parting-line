@@ -183,9 +183,10 @@ if uploaded_file is not None and iniciar:
                 tempo_por_estacao[estacao] += duracao
                 tempos_finais.append(fim)
 
-            fim_caixa = max(tempos_finais) + tempo_adicional_caixa if tempos_finais else 0
-            tempo_caixas[caixa] = fim_caixa - tempo_inicio_caixa
-            tempo_total_simulacao = max(tempo_total_simulacao, fim_caixa)
+            fim_caixa_absoluto = max(tempos_finais) + tempo_adicional_caixa if tempos_finais else 0
+            tempo_caixas[caixa] = fim_caixa_absoluto  # Guardar o tempo absoluto final da caixa
+            tempo_total_simulacao = max(tempo_total_simulacao, fim_caixa_absoluto)
+
 
         # Guarda dados na sessão
         fuso_brasil = pytz.timezone("America/Sao_Paulo")
