@@ -298,6 +298,8 @@ if comparar_simulacoes:
            # st.metric("Delta de Tempo Total", f"{tempo_formatado}", f"{delta_tempo:+.0f}s ({abs_pct:.1f}% {direcao})")
            # st.write(f"📦 **Caixas Base:** {caixas1} | **Comparada:** {caixas2} | Δ {caixas_diferenca:+} caixas ({caixas_pct:+.1f}%)")
 
+            
+            tempo_formatado = formatar_tempo(abs(delta_tempo))
             # Força a lógica onde diminuir o tempo é positivo (verde), aumentar é negativo (vermelho)
             st.metric(
                 "Delta de Tempo Total",
@@ -308,7 +310,7 @@ if comparar_simulacoes:
             
             st.write(f"📦 **Caixas Base:** {caixas1} | **Comparada:** {caixas2} | Δ {caixas_diferenca:+} caixas ({caixas_pct:+.1f}%)")
 
-            tempo_formatado = formatar_tempo(abs(delta_tempo))
+            
 
 elif uploaded_comp is not None:
     st.warning("⚠️ Para comparar corretamente, primeiro clique em '▶️ Iniciar Simulação' com o novo arquivo carregado.")
