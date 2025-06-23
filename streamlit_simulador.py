@@ -210,7 +210,7 @@ if uploaded_file is not None and st.button("▶️ Iniciar Simulação"):
 # Comparação com simulações anteriores ou arquivo externo
 if comparar_simulacoes:
     st.markdown("---")
-    st.subheader("🔁 Comparativo entre Simulações")
+    #st.subheader("🔁 Comparativo entre Simulações")
 
     ids = st.session_state.ordem_simulacoes[-2:]  # últimas 2 simulações
     if len(ids) < 2 and uploaded_comp is None:
