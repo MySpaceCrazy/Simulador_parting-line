@@ -8,7 +8,12 @@ from datetime import datetime
 from pathlib import Path
 import pytz
 
-st.set_page_config(page_title="Simulador de Separação de Produtos", layout="wide")
+#st.set_page_config(page_title="Simulador de Separação de Produtos", layout="wide")
+st.set_page_config(
+    page_title="Simulador de Separação de Produtos",
+    page_icon="https://raw.githubusercontent.com/MySpaceCrazy/Simulador_Operacional/refs/heads/main/simulador_icon.ico",
+    layout="wide"
+)
 
 # --- Função de formatação ---
 def formatar_tempo(segundos):
