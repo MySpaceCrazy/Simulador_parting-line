@@ -363,6 +363,7 @@ if comparar_simulacoes:
 
             st.write(f"📦 **Caixas Base:** {caixas1} | **Comparada:** {caixas2} | Δ {caixas_diferenca:+} caixas ({caixas_pct:+.1f}%)")
 
+st.markdown("---")
 
 # --- Seção Autor ---           
 st.markdown("""
