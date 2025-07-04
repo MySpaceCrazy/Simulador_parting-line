@@ -11,7 +11,7 @@ import pytz
 #st.set_page_config(page_title="Simulador de Separação de Produtos", layout="wide")
 st.set_page_config(
     page_title="Simulador de Separação de Produtos",
-    page_icon="https://raw.githubusercontent.com/MySpaceCrazy/Simulador_Operacional/refs/heads/main/simulador_icon.ico",
+    page_icon="https://raw.githubusercontent.com/MySpaceCrazy/Simulador_parting-line/refs/heads/main/pacotes.ico",
     layout="wide"
 )
 
