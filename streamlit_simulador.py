@@ -362,3 +362,13 @@ if comparar_simulacoes:
             )
 
             st.write(f"📦 **Caixas Base:** {caixas1} | **Comparada:** {caixas2} | Δ {caixas_diferenca:+} caixas ({caixas_pct:+.1f}%)")
+
+
+# --- Seção Autor ---           
+st.markdown("""
+    <div class="author">
+        <img src="https://avatars.githubusercontent.com/u/90271653?v=4" width="120">
+        <h3>Anderson Oliveira</h3>
+        <p>🔧 Desenvolvedor de soluções em logística e automações <br> 🌐 <a href="https://github.com/MySpaceCrazy" target="_blank">GitHub</a> | <a href="https://www.linkedin.com/in/seulinkedin" target="_blank">LinkedIn</a></p>
+    </div>
+""", unsafe_allow_html=True)
